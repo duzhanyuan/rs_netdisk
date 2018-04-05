@@ -1,14 +1,12 @@
 use schema::*;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 
 use diesel;
-use diesel::LoadDsl;
+use diesel::ExecuteDsl;
 use diesel::result::Error;
 
 use std::ops::Deref;
-
-use models::folder::Folder;
 
 #[derive(Insertable)]
 #[table_name = "folders"]
@@ -19,7 +17,7 @@ pub struct NewFolder {
 }
 
 impl NewFolder {
-    pub fn save(&self, conn: &DbConn) -> Result<Folder, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use std::str::FromStr;
         use schema::folders;
 
@@ -29,6 +27,6 @@ impl NewFolder {
             user_id: self.user_id
         };
 
-        diesel::insert(&new_folder).into(folders::table).get_result(conn.deref())
+        diesel::insert(&new_folder).into(folders::table).execute(conn.deref())
     }
 }

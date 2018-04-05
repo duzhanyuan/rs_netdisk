@@ -6,7 +6,7 @@ use diesel::FirstDsl;
 
 use bcrypt::verify;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 
 use models::user::User;
 

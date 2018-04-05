@@ -25,9 +25,7 @@ extern crate frank_jwt;
 extern crate time;
 extern crate rand;
 
-mod pg_pool;
-pub use pg_pool::DbConn;
-
+mod database;
 mod schema;
 mod controllers;
 mod models;
@@ -41,6 +39,7 @@ use dotenv::dotenv;
 use std::env;
 
 use controllers::*;
+use database::pool;
 
 fn main() {
     dotenv().ok();
@@ -48,7 +47,7 @@ fn main() {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     rocket::ignite()
-        .manage(pg_pool::init(&database_url))
+        .manage(pool::init(&database_url))
         .mount("/", routes![
             resource_controller::index,
             resource_controller::resource,

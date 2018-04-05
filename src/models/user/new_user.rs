@@ -1,14 +1,12 @@
 use schema::*;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 
 use diesel;
-use diesel::LoadDsl;
+use diesel::ExecuteDsl;
 use diesel::result::Error;
 
 use std::ops::Deref;
-
-use models::user::User;
 
 #[derive(Insertable)]
 #[table_name = "users"]
@@ -20,7 +18,7 @@ pub struct NewUser {
 }
 
 impl NewUser {
-    pub fn save(&self, conn: &DbConn) -> Result<User, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use schema::users;
 
         let new_user = NewUser {
@@ -30,6 +28,6 @@ impl NewUser {
             root: self.root,
         };
 
-        diesel::insert(&new_user).into(users::table).get_result(conn.deref())
+        diesel::insert(&new_user).into(users::table).execute(conn.deref())
     }
 }

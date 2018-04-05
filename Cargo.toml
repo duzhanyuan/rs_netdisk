@@ -7,8 +7,8 @@ authors = ["Charles Bassett <chasb96@gmail.com>"]
 rocket = "0.3.3"
 rocket_codegen = "0.3.3"
 rocket_contrib = "0.3.2"
-diesel = { version = "0.15.0", features = ["postgres", "chrono"] }
-diesel_codegen = { version = "0.15.0", features = ["postgres"] }
+diesel = { version = "0.15.0", features = ["postgres", "mysql", "chrono"] }
+diesel_codegen = { version = "0.15.0", features = ["postgres", "mysql"] }
 dotenv = "0.10.0"
 r2d2 = "0.7.3"
 r2d2-diesel = "0.15.0"
@@ -22,3 +22,7 @@ rust-crypto = "^0.2"
 frank_jwt = "2.6.0"
 time = "*"
 rand = "0.3"
+
+[features]
+postgres = []
+mysql = []

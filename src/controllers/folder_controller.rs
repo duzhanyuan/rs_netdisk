@@ -1,4 +1,4 @@
-use pg_pool::DbConn;
+use database::pool::DbConn;
 
 use guards::auth_guard::Auth;
 

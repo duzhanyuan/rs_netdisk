@@ -1,6 +1,6 @@
 use schema::*;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 use std::ops::Deref;
 
 use diesel;
@@ -8,7 +8,6 @@ use diesel::ExpressionMethods;
 use diesel::FilterDsl;
 use diesel::FirstDsl;
 use diesel::FindDsl;
-use diesel::LoadDsl;
 use diesel::ExecuteDsl;
 use diesel::result::Error;
 
@@ -50,7 +49,7 @@ impl RoleUser {
         roles.filter(id.eq(&self.role_id)).first::<Role>(conn.deref())
     }
 
-    pub fn save(&self, conn: &DbConn) -> Result<RoleUser, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use schema::role_user::dsl::*;
 
         diesel::update(role_user.find(&self.id))
@@ -58,7 +57,7 @@ impl RoleUser {
                 role_id.eq(&self.role_id),
                 user_id.eq(&self.user_id)
             ))
-            .get_result(conn.deref())
+            .execute(conn.deref())
     }
 
     pub fn delete(&self, conn: &DbConn) -> Result<usize, Error> {
@@ -69,7 +68,7 @@ impl RoleUser {
 }
 
 impl NewRoleUser {
-    pub fn save(&self, conn: &DbConn) -> Result<RoleUser, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use schema::role_user;
 
         let new_role_user = NewRoleUser {
@@ -77,6 +76,6 @@ impl NewRoleUser {
             user_id: self.user_id,
         };
 
-        diesel::insert(&new_role_user).into(role_user::table).get_result(conn.deref())
+        diesel::insert(&new_role_user).into(role_user::table).execute(conn.deref())
     }
 }

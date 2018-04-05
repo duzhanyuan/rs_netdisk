@@ -5,21 +5,19 @@ use rocket::http::Status;
 
 use guards::auth_guard::Auth;
 
-use r2d2;
-use r2d2_diesel::ConnectionManager;
 use std::ops::Deref;
 
 use models::user::User;
 use models::role::Role;
 use models::role_user::RoleUser;
 
-use diesel::pg::PgConnection;
 use diesel::ExpressionMethods;
 use diesel::FilterDsl;
 use diesel::FirstDsl;
 
-type ManagedPgConn = ConnectionManager<PgConnection>;
-type Pool = r2d2::Pool<ManagedPgConn>;
+use database::pool;
+
+type Pool = pool::Pool;
 
 pub struct Admin {
     pub user: User,

@@ -9,17 +9,15 @@ use models::user::User;
 
 use diesel::prelude::*;
 
+use diesel::FirstDsl;
+
+use database::pool;
+
 pub struct Auth {
     pub user: User,
 }
 
-use r2d2;
-use diesel::pg::PgConnection;
-use r2d2_diesel::ConnectionManager;
-use diesel::FirstDsl;
-
-type ManagedPgConn = ConnectionManager<PgConnection>;
-type Pool = r2d2::Pool<ManagedPgConn>;
+type Pool = pool::Pool;
 
 impl<'a, 'r> FromRequest<'a, 'r> for Auth {
     type Error = ();

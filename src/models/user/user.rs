@@ -1,7 +1,7 @@
 use ::chrono::*;
 use schema::*;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 use std::ops::Deref;
 
 use diesel;
@@ -55,7 +55,7 @@ impl User {
         users.find(id).first::<User>(conn.deref())
     }
 
-    pub fn save(&self, conn: &DbConn) -> Result<User, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use schema::users::dsl::*;
 
         diesel::update(users.find(&self.id))
@@ -65,7 +65,7 @@ impl User {
                 password.eq(&self.password),
                 root.eq(&self.root)
             ))
-            .get_result(conn.deref())
+            .execute(conn.deref())
     }
 
     pub fn delete(&self, conn: &DbConn) -> Result<usize, Error> {

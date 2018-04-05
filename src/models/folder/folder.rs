@@ -1,7 +1,7 @@
 use ::chrono::*;
 use schema::*;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 use std::ops::Deref;
 
 use diesel;
@@ -76,7 +76,7 @@ impl Folder {
         folders.filter(parent_id.eq(&self.id)).load::<Folder>(conn.deref())
     }
 
-    pub fn save(&self, conn: &DbConn) -> Result<Folder, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use schema::folders::dsl::*;
 
         diesel::update(folders.find(&self.id))
@@ -85,7 +85,7 @@ impl Folder {
                 parent_id.eq(self.parent_id),
                 user_id.eq(self.user_id)
             ))
-            .get_result(conn.deref())
+            .execute(conn.deref())
     }
 
     pub fn delete(&self, conn: &DbConn) -> Result<usize, Error> {

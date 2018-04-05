@@ -1,7 +1,7 @@
 use ::chrono::*;
 use schema::*;
 
-use pg_pool::DbConn;
+use database::pool::DbConn;
 use std::ops::Deref;
 
 use diesel;
@@ -9,7 +9,6 @@ use diesel::ExpressionMethods;
 use diesel::FilterDsl;
 use diesel::FirstDsl;
 use diesel::FindDsl;
-use diesel::LoadDsl;
 use diesel::ExecuteDsl;
 use diesel::result::Error;
 
@@ -52,7 +51,7 @@ impl File {
         folders.filter(id.eq(&self.folder_id)).first::<Folder>(conn.deref())
     }
 
-    pub fn save(&self, conn: &DbConn) -> Result<File, Error> {
+    pub fn save(&self, conn: &DbConn) -> Result<usize, Error> {
         use schema::files::dsl::*;
 
         diesel::update(files.find(&self.id))
@@ -62,7 +61,7 @@ impl File {
                 extension.eq(&self.extension),
                 folder_id.eq(self.folder_id)
             ))
-            .get_result(conn.deref())
+            .execute(conn.deref())
     }
 
     pub fn delete(&self, conn: &DbConn) -> Result<usize, Error> {
