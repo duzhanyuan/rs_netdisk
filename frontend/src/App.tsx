@@ -9,13 +9,13 @@ import {
 } from "react-router-dom";
 
 import Nav from "./Navbar";
-import AuthService from "./services/Auth";
+import AuthService from "./services/AuthService";
 import Viewport from "./Viewport";
 import Login from "./views/Login";
 
 const PrivateRoute  = ({ component: Component, ...rest }) => (
     <Route {...rest} render={ props => (
-        AuthService.authenticated()
+        AuthService.is_authenticated()
             ? <Component {...props} />
             : <Redirect to={{ pathname: "/login", state: { from: props.location }}}/>
     )} />
@@ -27,6 +27,7 @@ class App extends React.Component<{}, {}> {
   }
 
   public render() {
+
     return (
       <Router>
         <div id="app">
@@ -35,7 +36,7 @@ class App extends React.Component<{}, {}> {
             <Switch>
                 <Route path="/login" component={Login} />
                 <Route path="/logout" render={ () => {
-                    AuthService.logout();
+                    AuthService.delete_user();
 
                     return (
                         <Redirect to="/login" />

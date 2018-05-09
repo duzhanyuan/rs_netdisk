@@ -1,5 +1,7 @@
 import * as React from "react";
-import AuthService from "../../services/Auth";
+import AuthFacade from "../../web/facades/AuthFacade";
+import AuthService from '../../services/AuthService';
+import UserService from '../../services/UserService';
 
 import {
     Button,
@@ -45,18 +47,30 @@ class LoginForm extends React.Component<Props, State> {
             pending: true,
         });
 
-        AuthService.authenticate( this.state.email, this.state.password )
+        AuthFacade.login( this.state.email, this.state.password )
             .then((response) => {
+                return response.json();
+            })
+            .then(response => {
                 this.setState({
-                    pending: false,
+                    pending: false
                 });
 
-                if ( AuthService.authenticated() ) {
+                if( response.user ) {
+                    AuthService.set_user(
+                        UserService.make_user(
+                            response.user.user_id,
+                            response.user.email,
+                            response.user.name,
+                            [],
+                            []
+                        )
+                    );
+
                     if (this.props.on_success) { this.props.on_success(response); }
-                } else {
-                    if ( this.props.on_error ) {
-                        this.props.on_error(response);
-                    }
+                }
+                else {
+                    if (this.props.on_error) { this.props.on_error(response); }
                 }
             });
     }

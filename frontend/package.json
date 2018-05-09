@@ -13,6 +13,7 @@
     "fsevents": "^1.1.2",
     "jquery": "^3.2.1",
     "js-file-download": "^0.4.1",
+    "npm-watch": "^0.3.0",
     "react": "^16.0.0",
     "react-cookie": "^2.1.1",
     "react-dom": "^16.0.0",
@@ -29,11 +30,18 @@
     "redux-thunk": "^2.2.0",
     "tslint": "^5.7.0"
   },
+  "watch": {
+    "test": "{src,test}/*.tsx",
+    "build": {
+        "extensions": "tsx"
+    }
+  },
   "scripts": {
     "start": "react-scripts-ts start",
     "build": "react-scripts-ts build",
     "test": "react-scripts-ts test --env=jsdom",
-    "eject": "react-scripts-ts eject"
+    "eject": "react-scripts-ts eject",
+    "watch": "npm-watch build"
   },
   "proxy": {
     "/api": {
