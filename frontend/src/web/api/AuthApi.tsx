@@ -3,9 +3,9 @@ import Route from '../Route';
 class AuthApi {
     public login_route(): Route {
         return {
-            path: '/api/login',
+            format: 'application/json',
             method: 'POST',
-            format: 'application/json'
+            path: '/api/login'
         };
     }
 }

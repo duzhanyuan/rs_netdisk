@@ -1,6 +1,6 @@
 import Route from '../Route';
 
-class File {
+class FileApi {
     public index_route(user_id: number, folder_id: number): Route {
         return {
             path: '/api/users/' + user_id + '/folders/' + folder_id + '/files',
@@ -58,4 +58,4 @@ class File {
     }
 }
 
-export default new File();
+export default new FileApi();

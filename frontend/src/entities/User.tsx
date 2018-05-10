@@ -54,7 +54,7 @@ class User {
 
     public remove_role(role: Role): User {
         this.roles = this.roles.filter((r) => {
-            return r != role;
+            return r.get_role_id() !== role.get_role_id();
         });
 
         return this;
@@ -76,7 +76,7 @@ class User {
 
     public remove_folder(folder: Folder): User {
         this.folders = this.folders.filter((f) => {
-            return f.get_folder_id() != folder.get_folder_id();
+            return f.get_folder_id() !== folder.get_folder_id();
         });
 
         return this;

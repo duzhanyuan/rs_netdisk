@@ -1,6 +1,9 @@
 import * as React from "react";
 import "./App.css";
 
+import AppLayout from './views/layouts/App';
+import LoginLayout from './views/layouts/Login';
+
 import {
     BrowserRouter as Router,
     Redirect,
@@ -8,10 +11,7 @@ import {
     Switch,
 } from "react-router-dom";
 
-import Nav from "./Navbar";
 import AuthService from "./services/AuthService";
-import Viewport from "./Viewport";
-import Login from "./views/Login";
 
 const PrivateRoute  = ({ component: Component, ...rest }) => (
     <Route {...rest} render={ props => (
@@ -30,21 +30,10 @@ class App extends React.Component<{}, {}> {
 
     return (
       <Router>
-        <div id="app">
-            <Nav />
-
-            <Switch>
-                <Route path="/login" component={Login} />
-                <Route path="/logout" render={ () => {
-                    AuthService.delete_user();
-
-                    return (
-                        <Redirect to="/login" />
-                    );
-                }}/>
-                <PrivateRoute path="" component={Viewport} />
-            </Switch>
-        </div>
+        <Switch>
+            <Route path="/login" component={LoginLayout}/>
+            <PrivateRoute path="" component={AppLayout}/>
+        </Switch>
       </Router>
     );
   }
