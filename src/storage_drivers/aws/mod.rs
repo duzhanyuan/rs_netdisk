@@ -6,9 +6,10 @@ use s3::bucket::Bucket;
 use s3::credentials::Credentials;
 use s3::error::S3Error;
 use s3::region::Region;
-use std::error::Error;
+use std::error;
 use std::fmt;
 use std::fs::File;
+use std::io::Error;
 use std::io::Read;
 use std::io::Write;
 use std::path::Path;
@@ -33,7 +34,7 @@ fn bucket() -> Result<Bucket, S3Error> {
 pub struct Aws;
 
 impl StorageDriver for Aws {
-    type Error = S3Error;
+    type Error = AwsError;
 
     fn store<R>(path: &Path, contents: &mut R) -> Result<(), Self::Error>
     where
@@ -56,20 +57,20 @@ impl StorageDriver for Aws {
             .collect();
 
         let tmp = format!(
-            "{timestamp}_{random_bytes}",
+            "/tmp/{timestamp}_{random_bytes}",
             timestamp = timestamp,
             random_bytes = random_bytes
         );
 
         {
-            let mut file = File::create(Path::new(&tmp)).unwrap();
+            let mut file = File::create(Path::new(&tmp))?;
 
             let bucket = bucket()?;
 
             bucket.get_object_stream(path.to_str().unwrap(), &mut file)?;
         }
 
-        Ok(File::open(Path::new(&tmp)).unwrap())
+        Ok(File::open(Path::new(&tmp))?)
     }
 
     fn delete(path: &Path) -> Result<(), Self::Error> {
@@ -78,5 +79,49 @@ impl StorageDriver for Aws {
         bucket.delete_object(path.to_str().unwrap())?;
 
         Ok(())
+    }
+}
+
+pub enum AwsError {
+    S3(S3Error),
+    IO(Error),
+}
+
+impl error::Error for AwsError {
+    fn description(&self) -> &str {
+        match self {
+            AwsError::S3(s3) => s3.description(),
+            AwsError::IO(io) => io.description(),
+        }
+    }
+}
+
+impl fmt::Display for AwsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self {
+            AwsError::S3(s3) => s3.fmt(f),
+            AwsError::IO(io) => io.fmt(f),
+        }
+    }
+}
+
+impl fmt::Debug for AwsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self {
+            AwsError::S3(s3) => s3.fmt(f),
+            AwsError::IO(io) => io.fmt(f),
+        }
+    }
+}
+
+impl From<S3Error> for AwsError {
+    fn from(from: S3Error) -> Self {
+        AwsError::S3(from)
+    }
+}
+
+impl From<Error> for AwsError {
+    fn from(from: Error) -> Self {
+        AwsError::IO(from)
     }
 }

@@ -116,7 +116,7 @@ impl Env {
     pub fn storage_driver() -> StorageDriverOption {
         match env::var(STORAGE_DRIVER) {
             Ok(driver) => StorageDriverOption::from(driver),
-            Err(e) => StorageDriverOption::from("disk".to_string()),
+            Err(_) => StorageDriverOption::from("disk".to_string()),
         }
     }
 
