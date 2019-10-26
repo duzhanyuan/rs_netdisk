@@ -1,6 +1,7 @@
 use super::bucket::Bucket;
 use super::credentials::Credentials;
 use super::region::Region;
+use bytes::Bytes;
 use chrono::Utc;
 use rand::{self, distributions::Alphanumeric, Rng};
 use rusoto_core::credential::StaticProvider;
@@ -18,8 +19,6 @@ use std::io::Error;
 use std::io::Write;
 use std::path::Path;
 use storage_drivers::StorageDriver;
-use tokio::codec::{BytesCodec, FramedRead};
-use tokio::fs::File as TokioFile;
 use tokio::prelude::{Future, Stream};
 
 pub struct S3;
@@ -27,16 +26,10 @@ pub struct S3;
 impl StorageDriver for S3 {
     type Error = S3Error;
 
-    fn store(path: &Path, contents: File) -> Result<(), Self::Error> {
-        let len = match contents.metadata() {
-            Ok(metadata) => metadata.len(),
-            Err(e) => return Err(S3Error::from(e)),
-        };
-
-        let async_file = TokioFile::from_std(contents);
-
-        let stream = FramedRead::new(async_file, BytesCodec::new()).map(|r| r.freeze());
-
+    fn store<S>(path: &Path, contents: S) -> Result<(), Self::Error>
+    where
+        S: Stream<Item = Bytes, Error = std::io::Error> + Send + 'static,
+    {
         let region = Region::env().into();
         let bucket = Bucket::env().into();
         let provider: StaticProvider = Credentials::env().into();
@@ -44,10 +37,9 @@ impl StorageDriver for S3 {
         let client = S3Client::new_with(HttpClient::new().unwrap(), provider, region);
 
         let request = PutObjectRequest {
-            body: Some(ByteStream::new(stream)),
+            body: Some(ByteStream::new(contents)),
             bucket: bucket,
             key: path.to_str().unwrap().to_string(),
-            content_length: Some(len as i64),
             ..Default::default()
         };
 
@@ -57,7 +49,9 @@ impl StorageDriver for S3 {
         }
     }
 
-    fn read(path: &Path) -> Result<File, Self::Error> {
+    fn read(
+        path: &Path,
+    ) -> Result<Box<dyn Stream<Item = Bytes, Error = std::io::Error> + Send>, Self::Error> {
         let region = Region::env().into();
         let bucket = Bucket::env().into();
         let provider: StaticProvider = Credentials::env().into();
@@ -75,48 +69,7 @@ impl StorageDriver for S3 {
             Err(e) => return Err(S3Error::from(e)),
         };
 
-        // Create a temp file for streaming the file back to the end user
-
-        let timestamp = Utc::now().to_string();
-        let random_bytes: String = rand::thread_rng()
-            .sample_iter(&Alphanumeric)
-            .take(16)
-            .collect();
-
-        let tmp = format!(
-            "/tmp/{timestamp}_{random_bytes}",
-            timestamp = timestamp,
-            random_bytes = random_bytes
-        );
-
-        // Creating scope block here to force the file to close, and reopen,
-        //  meaning the file cannot be opened while still being owned by the process
-        {
-            let mut file = match File::create(Path::new(&tmp)) {
-                Ok(file) => file,
-                Err(e) => {
-                    log!("error", "Failed to create tmp file: {}", e);
-                    return Err(S3Error::from(e));
-                }
-            };
-
-            response
-                .body
-                .unwrap()
-                .for_each(|chunk| file.write_all(&chunk))
-                .wait()
-                .unwrap();
-        }
-
-        let file = match File::open(Path::new(&tmp)) {
-            Ok(file) => file,
-            Err(e) => {
-                log!("error", "Failed to open tmp file: {}", e);
-                return Err(S3Error::from(e));
-            }
-        };
-
-        Ok(file)
+        Ok(Box::new(response.body.unwrap()))
     }
 
     fn delete(path: &Path) -> Result<(), Self::Error> {

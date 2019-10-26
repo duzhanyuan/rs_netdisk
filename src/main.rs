@@ -1,5 +1,4 @@
-#![feature(proc_macro_hygiene, decl_macro, specialization)]
-#![feature(optin_builtin_traits)]
+#![feature(proc_macro_hygiene, decl_macro)]
 extern crate chrono;
 #[macro_use]
 extern crate diesel;
@@ -9,19 +8,24 @@ extern crate rand;
 extern crate time;
 #[macro_use]
 extern crate lazy_static;
+extern crate bytes;
 extern crate diesel_derive_enum;
 extern crate frank_jwt;
+extern crate futures;
+extern crate hyper;
 extern crate postgres;
 extern crate r2d2_postgres;
+#[macro_use]
 extern crate rocket;
-extern crate rocket_contrib;
-extern crate rocket_multipart_form_data;
+extern crate rocket_codegen;
 extern crate rusoto_core;
 extern crate rusoto_s3;
-extern crate s3;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
+#[macro_use]
+extern crate tera;
+extern crate rocket_contrib;
 extern crate tokio;
 
 #[cfg(test)]
@@ -45,7 +49,7 @@ mod services;
 mod storage_drivers;
 mod web;
 
-fn main() {
+fn main() -> std::io::Result<()> {
     // Load .env file
     dotenv::dotenv().expect("Missing .env file");
 

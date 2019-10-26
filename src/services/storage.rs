@@ -1,5 +1,7 @@
+use bytes::Bytes;
 use chrono::Utc;
 use env::Env;
+use futures::stream::Stream;
 use rand::{self, distributions::Alphanumeric, Rng};
 use std::error::Error;
 use std::fmt;
@@ -12,7 +14,10 @@ use storage_drivers::StorageRouter;
 pub struct StorageService;
 
 impl StorageService {
-    pub fn store(directory: String, input: File) -> Result<String, StorageServiceError> {
+    pub fn store<S>(directory: String, input: S) -> Result<String, StorageServiceError>
+    where
+        S: Stream<Item = Bytes, Error = std::io::Error> + Send + 'static,
+    {
         #[cfg(test)]
         let directory = String::from("test");
 
@@ -44,7 +49,11 @@ impl StorageService {
         }
     }
 
-    pub fn read(directory: String, file_name: String) -> Result<File, StorageServiceError> {
+    pub fn read(
+        directory: String,
+        file_name: String,
+    ) -> Result<Box<dyn Stream<Item = Bytes, Error = std::io::Error> + Send>, StorageServiceError>
+    {
         #[cfg(test)]
         let directory = String::from("test");
 

@@ -1,13 +1,13 @@
 pub enum StorageDriverOption {
     Aws,
-    Disk,
+    // Disk,
 }
 
 impl From<String> for StorageDriverOption {
     fn from(from: String) -> Self {
         match from.to_lowercase().as_str() {
             "aws" => StorageDriverOption::Aws,
-            "disk" => StorageDriverOption::Disk,
+            // "disk" => StorageDriverOption::Disk,
             _ => panic!("Not a valid storage driver"),
         }
     }
@@ -15,6 +15,6 @@ impl From<String> for StorageDriverOption {
 
 impl Default for StorageDriverOption {
     fn default() -> Self {
-        StorageDriverOption::Disk
+        StorageDriverOption::Aws
     }
 }

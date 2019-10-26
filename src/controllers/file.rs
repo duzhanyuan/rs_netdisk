@@ -1,10 +1,12 @@
 use super::ControllerError as Error;
+use bytes::Bytes;
 use db::models::{File, User};
 use db::DbFacade;
 use diesel::result;
 use diesel::ExpressionMethods;
 use diesel::QueryDsl;
 use diesel::RunQueryDsl;
+use futures::stream::Stream;
 use policies::Restricted;
 use schema::*;
 use services::{FileService, StorageService};
@@ -76,15 +78,18 @@ impl FileController {
         }
     }
 
-    pub fn store(
+    pub fn store<S>(
         user: User,
         name: String,
         extension: String,
         user_id: i32,
         folder_id: i32,
         public: bool,
-        input: fs::File,
-    ) -> Result<File, Error> {
+        input: S,
+    ) -> Result<File, Error>
+    where
+        S: Stream<Item = Bytes, Error = std::io::Error> + Send + 'static,
+    {
         if !user.can_create::<File>() {
             return Err(Error::Forbidden);
         }
@@ -192,7 +197,10 @@ impl FileController {
         }
     }
 
-    pub fn contents(user: User, file_id: i32) -> Result<fs::File, Error> {
+    pub fn contents(
+        user: User,
+        file_id: i32,
+    ) -> Result<Box<dyn Stream<Item = Bytes, Error = std::io::Error>>, Error> {
         let conn = &DbFacade::connection();
 
         let found: File = match File::all().filter(files::id.eq(&file_id)).first(conn) {
